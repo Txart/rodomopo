@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 
+use chrono::NaiveDateTime;
 use clap::Parser;
 
 /// Log working hours
@@ -16,6 +17,15 @@ struct Cli {
 // constants
 // Maybe move to config file?
 const TIMESTAMPS_FILENAME: &str = "timestamps.dat";
+const TIMESTAMP_FORMAT: &str = "%d/%m/%Y--%H:%M:%S";
+
+#[derive(Debug)]
+enum Timestamp {
+    // If the timestamp is open, it is defined by the time when it was opened
+    // If it is closed, no more info is needed.
+    Open(NaiveDateTime),
+    Closed,
+}
 
 fn read_first_line_from_file(filename: &str) -> String {
     // Read first line of file
@@ -30,17 +40,30 @@ fn read_first_line_from_file(filename: &str) -> String {
     line
 }
 
+fn get_two_words_from_line(line: &str) -> [&str; 2] {
+    let mut words = line.split(' ');
+    let first = words.next().unwrap();
+    let second = words.next().unwrap();
+
+    [first, second]
+}
+
+fn read_last_timestamp() -> Timestamp {
+    let timestamps_first_line: String = read_first_line_from_file(TIMESTAMPS_FILENAME);
+    let [status, timestamp] = get_two_words_from_line(&timestamps_first_line);
+
+    if status == "START" {
+        let timestamp = NaiveDateTime::parse_from_str(timestamp, TIMESTAMP_FORMAT)
+            .expect("Error prasing the timestamp!");
+        Timestamp::Open(timestamp)
+    } else {
+        Timestamp::Closed
+    }
+}
+
 fn main() {
     // let args = Cli::parse();
 
-    let first_line: String = read_first_line_from_file(TIMESTAMPS_FILENAME);
-
-    // let first_word = match first_line.split(' ').next() {
-    //     Some(value) => Some(value),
-    //     None => None,
-    // };
-
-    let first_word: Option<&str> = first_line.split(' ').next();
-
-    println!("{:?}", first_word);
+    let last_timestamp = read_last_timestamp();
+    println!("{:?}", last_timestamp);
 }
