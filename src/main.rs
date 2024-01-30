@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use clap::Parser;
 
 /// Log working hours
@@ -66,5 +66,15 @@ fn main() {
     // let args = Cli::parse();
 
     let last_timestamp = read_last_timestamp();
-    println!("{:?}", last_timestamp);
+    println!("Last timestamp: {:?}", last_timestamp);
+
+    match last_timestamp {
+        Timestamp::Open(ts) => {
+            let dur = ts.signed_duration_since(Utc::now().naive_local());
+            println!("Duration since last open timestamp: {}", dur);
+        }
+        Timestamp::Closed => {
+            println!("TODO: add new timestamp!");
+        }
+    }
 }
