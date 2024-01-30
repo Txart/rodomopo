@@ -18,6 +18,7 @@ struct Cli {
 // Maybe move to config file?
 const TIMESTAMPS_FILENAME: &str = "timestamps.dat";
 const TIMESTAMP_FORMAT: &str = "%d/%m/%Y--%H:%M:%S";
+const OPEN_TIMESTAMP_KEYWORD: &str = "OPEN";
 
 #[derive(Debug)]
 enum Timestamp {
@@ -52,9 +53,9 @@ fn read_last_timestamp() -> Timestamp {
     let timestamps_first_line: String = read_first_line_from_file(TIMESTAMPS_FILENAME);
     let [status, timestamp] = get_two_words_from_line(&timestamps_first_line);
 
-    if status == "START" {
+    if status == OPEN_TIMESTAMP_KEYWORD {
         let timestamp = NaiveDateTime::parse_from_str(timestamp, TIMESTAMP_FORMAT)
-            .expect("Error prasing the timestamp!");
+            .expect("Error reading latest timestamp from file!");
         Timestamp::Open(timestamp)
     } else {
         Timestamp::Closed
