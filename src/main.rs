@@ -70,11 +70,14 @@ fn main() {
 
     match last_timestamp {
         Timestamp::Open(ts) => {
-            let dur = ts.signed_duration_since(Utc::now().naive_local());
-            println!("Duration since last open timestamp: {}", dur);
+            let dur = Utc::now().naive_local().signed_duration_since(ts);
+            println!(
+                "Time passed since last open timestamp: {} minutes",
+                dur.num_minutes()
+            );
         }
         Timestamp::Closed => {
-            println!("TODO: add new timestamp!");
+            println!("TODO: Open new timestamp!");
         }
     }
 }
