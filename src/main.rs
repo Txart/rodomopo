@@ -3,7 +3,7 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::BufReader;
 
-use chrono::{NaiveDateTime, Utc};
+use chrono::{Local, NaiveDate, NaiveDateTime};
 use clap::Parser;
 
 /// Log working hours
@@ -19,10 +19,11 @@ struct Cli {
 // Maybe move to config file?
 const STATUS_FILENAME: &str = "status.txt"; // current timestamp status
 const TIMESTAMPS_FILENAME: &str = "timestamps.dat"; // historical timestamps
-const TIMESTAMP_FORMAT: &str = "%d/%m/%Y--%H:%M:%S";
+const DATETIME_FORMAT: &str = "%d/%m/%Y--%H:%M:%S";
+const DATE_FORMAT: &str = "%d/%m/%Y";
 const OPEN_TIMESTAMP_KEYWORD: &str = "OPEN";
 const CLOSED_TIMESTAMP_KEYWORD: &str = "CLOSED";
-const MINIMUM_WORK_DURATION_MINUTES: i64 = 30;
+const MINIMUM_WORK_DURATION_MINUTES: i64 = 25;
 
 #[derive(Debug)]
 enum Timestamp {
@@ -54,7 +55,7 @@ fn get_two_words_from_line(line: &str) -> [&str; 2] {
 }
 
 fn read_timestamp_from_string(s: &str) -> NaiveDateTime {
-    NaiveDateTime::parse_from_str(s, TIMESTAMP_FORMAT)
+    NaiveDateTime::parse_from_str(s, DATETIME_FORMAT)
         .expect("Error reading latest timestamp from file!")
 }
 
@@ -73,11 +74,14 @@ fn get_current_status() -> Timestamp {
 }
 
 fn get_current_datetime() -> NaiveDateTime {
-    Utc::now().naive_local()
+    Local::now().naive_local()
 }
 
 fn datetime_to_string(dt: NaiveDateTime) -> String {
-    dt.format(TIMESTAMP_FORMAT).to_string()
+    dt.format(DATETIME_FORMAT).to_string()
+}
+fn date_to_string(dt: NaiveDate) -> String {
+    dt.format(DATE_FORMAT).to_string()
 }
 
 fn append_line_to_file(line: &str, filename: &str) {
@@ -99,7 +103,7 @@ fn set_timestamp_status_open() {
 }
 
 fn minutes_since_last_timestamp(ts: NaiveDateTime) -> i64 {
-    Utc::now()
+    Local::now()
         .naive_local()
         .signed_duration_since(ts)
         .num_minutes()
@@ -111,8 +115,8 @@ fn set_timestamp_status_closed() {
 }
 
 fn add_timestamp_to_history(timestamp_duration: i64) {
-    let line_to_write: String =
-        CLOSED_TIMESTAMP_KEYWORD.to_owned() + " " + &timestamp_duration.to_string();
+    let date_of_today: String = date_to_string(Local::now().date_naive());
+    let line_to_write: String = date_of_today + " " + &timestamp_duration.to_string();
     append_line_to_file(&line_to_write, TIMESTAMPS_FILENAME);
 }
 
@@ -120,7 +124,6 @@ fn main() {
     // let args = Cli::parse();
 
     let last_timestamp = get_current_status();
-    println!("Last timestamp: {:?}", last_timestamp);
 
     match last_timestamp {
         Timestamp::Open(ts) => {
@@ -132,11 +135,13 @@ fn main() {
                     dur
                 )
             } else {
+                println!("Closing timestamp. Time for a break!");
                 set_timestamp_status_closed();
                 add_timestamp_to_history(dur);
             }
         }
         Timestamp::Closed => {
+            println!("Opening timestamp. Time for deep work!");
             set_timestamp_status_open();
         }
     }
