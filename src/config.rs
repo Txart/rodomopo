@@ -2,8 +2,8 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 
 lazy_static! {
-pub static ref STATUS_FILENAME: PathBuf = PathBuf::from("status.txt"); // current timestamp status
-pub static ref TIMESTAMPS_FILENAME: PathBuf = PathBuf::from("timestamps.dat"); // historical timestamps
+pub static ref STATUS_FILENAME: PathBuf = PathBuf::from("/home/txart/projects/sb-rust/data/status.txt"); // current timestamp status
+pub static ref TIMESTAMPS_FILENAME: PathBuf = PathBuf::from("/hometxartprojectssb-rust/data/timestamps.dat"); // historical timestamps
 }
 pub const DATETIME_FORMAT: &str = "%d/%m/%Y--%H:%M:%S";
 pub const DATE_FORMAT: &str = "%d/%m/%Y";

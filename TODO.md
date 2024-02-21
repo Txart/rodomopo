@@ -1,3 +1,6 @@
+## Todos
+Show current work status. Sum and print all timestamps done today.
+
 Files in current directory?
 
 Let user decide to go against the rules if duration is too short.
