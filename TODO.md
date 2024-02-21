@@ -1,4 +1,4 @@
-Read config options (such as the global constants) from a config file.
+Files in current directory?
 
 Let user decide to go against the rules if duration is too short.
 
@@ -11,3 +11,9 @@ Improve code logic. Structs, enums?
 Improve error handling. No unwrap() or expects()!
 
 Improve the looks of the output.
+  - Progress bar
+  - colors and bolds
+
+## Done
+
+Read config options (such as the global constants) from a config file.
