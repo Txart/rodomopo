@@ -1,7 +1,5 @@
 ## Todos
-Show current work status. Sum and print all timestamps done today.
 
-Files in current directory?
 
 Let user decide to go against the rules if duration is too short.
 
@@ -14,9 +12,11 @@ Improve code logic. Structs, enums?
 Improve error handling. No unwrap() or expects()!
 
 Improve the looks of the output.
-  - Progress bar
   - colors and bolds
 
 ## Done
 
 Read config options (such as the global constants) from a config file.
+Show current work status. Sum and print all timestamps done today.
+Files in current directory?
+  - Progress bar

@@ -186,7 +186,7 @@ mod timestamping {
         let completed_part: String = "=".repeat(completed - 1);
         let remaining_part: String = "-".repeat(total - completed);
 
-        "[".to_string() + &completed_part + ">" + &remaining_part
+        "[".to_string() + &completed_part + ">" + &remaining_part + "]"
     }
 
     fn show_progress_bar(progress: f64, goal: f64, bar_char_length: usize) {
@@ -250,8 +250,6 @@ pub fn run() {
     // let args = Cli::parse();
     let last_timestamp_status = crate::timestamping::get_current_status();
 
-    crate::timestamping::show_progress_for_today();
-
     match last_timestamp_status {
         TimestampStatus::Open(datetime) => {
             let dur = crate::timestamping::minutes_since_last_datetime(datetime);
@@ -278,4 +276,7 @@ pub fn run() {
             crate::timestamping::open_timestamp();
         }
     }
+
+    println!("\n");
+    crate::timestamping::show_progress_for_today();
 }
