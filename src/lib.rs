@@ -1,16 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
-use clap::Parser;
+use rustyline::error::ReadlineError;
 
 mod config;
-
-/// Log working hours
-#[derive(Parser)]
-struct Cli {
-    // /// The pattern to look for
-    // pattern: String,
-    // /// The path to the file to read
-    // path: std::path::PathBuf,
-}
 
 enum TimestampStatus {
     // If the timestamp is open, it is defined by the time when it was opened
@@ -183,8 +174,14 @@ mod timestamping {
     }
 
     fn create_progress_bar(completed: usize, total: usize) -> String {
-        let completed_part: String = "=".repeat(completed - 1);
-        let remaining_part: String = "-".repeat(total - completed);
+        // The completed part of the bar is made of x-1 "=" and 1 ">", e.g., ====>
+        // If nothing has been completed, show 0, not -1 "=".
+        let completed_to_display: usize = match completed {
+            0 => 0,
+            completed => completed - 1,
+        };
+        let completed_part: String = "=".repeat(completed_to_display);
+        let remaining_part: String = "-".repeat(total - completed_to_display);
 
         "[".to_string() + &completed_part + ">" + &remaining_part + "]"
     }
@@ -230,7 +227,10 @@ mod timestamping {
                 duration: 40,
             };
             let timestamps = vec![ts1, ts2];
-            assert_eq!(sum_minutes_in_timestamps(timestamps), 70)
+            assert_eq!(sum_minutes_in_timestamps(timestamps), 70);
+
+            let timestamps = Vec::new();
+            assert_eq!(sum_minutes_in_timestamps(timestamps), 0);
         }
 
         #[test]
@@ -242,6 +242,33 @@ mod timestamping {
 
             assert_eq!(date, ts.date);
             assert_eq!(67, ts.duration);
+        }
+    }
+}
+
+fn trigger_yes_no_question(question: &str) -> bool {
+    let mut rl = rustyline::DefaultEditor::new().expect("could not trigger for user input!");
+
+    loop {
+        let readline = rl.readline(question);
+        match readline {
+            Ok(line) => {
+                let _ = rl.add_history_entry(line.as_str());
+                match line.trim().to_lowercase().as_str() {
+                    "yes" | "y" => return true,
+                    "no" | "n" => return false,
+                    &_ => println!("Invalid input. It should be yes or no"),
+                }
+            }
+            Err(ReadlineError::Interrupted) => {
+                panic!("Program stopped by CTRL-C");
+            }
+            Err(ReadlineError::Eof) => {
+                panic!("Program stopped by CTRL-D");
+            }
+            Err(err) => {
+                panic!("Error: {:?}", err);
+            }
         }
     }
 }
@@ -263,9 +290,20 @@ pub fn run() {
                 );
             } else if dur < config::MINIMUM_WORK_BLOCK_DURATION_MINUTES {
                 println!(
-                    "Not enough time has passed. You have been working only for {} minutes",
-                    dur
-                )
+                    "Not enough time has passed. You have been working only for {dur} minutes"
+                );
+                let answer = trigger_yes_no_question(
+                    "Do you want to betray your principles? [y]es or [n]o.",
+                );
+                match answer {
+                    true => {
+                        crate::timestamping::close_timestamp(dur);
+                        println!(
+                            "Betraying your principles and closing timestamp. Time for a break!"
+                        );
+                    }
+                    false => println!("Good! Keep working!"),
+                }
             } else {
                 println!("Closing timestamp. Time for a break!");
                 crate::timestamping::close_timestamp(dur);
