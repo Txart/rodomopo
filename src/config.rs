@@ -1,10 +1,6 @@
-use lazy_static::lazy_static;
-use std::path::PathBuf;
+pub static STATUS_FILENAME: &str = "data/status.txt"; // current timestamp status
+pub static TIMESTAMPS_FILENAME: &str = "data/timestamps.dat"; // historical timestamps
 
-lazy_static! {
-pub static ref STATUS_FILENAME: PathBuf = PathBuf::from("/home/txart/projects/boss/data/status.txt"); // current timestamp status
-pub static ref TIMESTAMPS_FILENAME: PathBuf = PathBuf::from("/home/txart/projects/boss/data/timestamps.dat"); // historical timestamps
-}
 pub const DATETIME_FORMAT: &str = "%d/%m/%Y--%H:%M:%S";
 pub const DATE_FORMAT: &str = "%d/%m/%Y";
 pub const OPEN_TIMESTAMP_KEYWORD: &str = "OPEN";

@@ -1,12 +1,17 @@
 ## Todos
+Bundle as standalone software
+  - timestamps.dat and config should be in a relative path somehow
+
 Improve error handling. No unwrap() or expects()!
 
 Improve the looks of the output.
   - colors and bolds
 
 
+Add subcommand to print and edit current config, maybe with Clap
+
 ## Some day
-Improve code logic. Structs, enums?
+- plot weekly, monthly, yearly stats.
 
 
 ## Done

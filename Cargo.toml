@@ -7,5 +7,10 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.33"
+clap = { version = "4.5.2", features = ["derive"] }
 lazy_static = "1.4.0"
 rustyline = "14.0.0"
+
+[[bin]]
+name = "boss"
+path = "src/main.rs"

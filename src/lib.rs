@@ -1,8 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rustyline::error::ReadlineError;
 
-mod config;
-
 enum TimestampStatus {
     // If the timestamp is open, it is defined by the time when it was opened
     // If it is closed, no more info is needed.
@@ -15,6 +13,7 @@ struct Timestamp {
     date: NaiveDate,
     duration: i64,
 }
+mod config;
 
 mod files_io {
     use std::fs::{File, OpenOptions};
@@ -51,6 +50,7 @@ mod files_io {
 
 mod timestamping {
     use std::io::BufRead;
+    use std::path::PathBuf;
 
     use crate::config;
     use crate::files_io;
@@ -64,7 +64,8 @@ mod timestamping {
     }
 
     pub fn get_current_status() -> TimestampStatus {
-        let status_line: String = files_io::read_first_line_from_file(&config::STATUS_FILENAME);
+        let status_line: String =
+            files_io::read_first_line_from_file(&PathBuf::from(config::STATUS_FILENAME));
         let [status, datetime_string] = get_two_words_from_line(&status_line);
 
         if status == config::OPEN_TIMESTAMP_KEYWORD {
@@ -82,7 +83,10 @@ mod timestamping {
             + " "
             + &datetime_to_string(get_current_datetime());
 
-        files_io::write_line_to_file(line_to_write.as_str(), &config::STATUS_FILENAME);
+        files_io::write_line_to_file(
+            line_to_write.as_str(),
+            &PathBuf::from(config::STATUS_FILENAME),
+        )
     }
 
     pub fn minutes_since_last_datetime(datetime: NaiveDateTime) -> i64 {
@@ -122,7 +126,7 @@ mod timestamping {
 
     fn set_timestamp_status_closed() {
         let line: String = config::CLOSED_TIMESTAMP_KEYWORD.to_owned() + " TIMESTAMP";
-        files_io::write_line_to_file(&line, &config::STATUS_FILENAME);
+        files_io::write_line_to_file(&line, &PathBuf::from(config::STATUS_FILENAME));
     }
 
     fn get_date_of_today() -> NaiveDate {
@@ -132,7 +136,7 @@ mod timestamping {
     fn add_timestamp_to_history(timestamp_duration: i64) {
         let date_of_today: String = date_to_string(get_date_of_today());
         let line_to_write: String = date_of_today + " " + &timestamp_duration.to_string();
-        files_io::append_line_to_file(&line_to_write, &config::TIMESTAMPS_FILENAME);
+        files_io::append_line_to_file(&line_to_write, &PathBuf::from(config::TIMESTAMPS_FILENAME));
     }
 
     fn compute_working_hours_in_a_day(day: NaiveDate) -> i64 {
@@ -153,7 +157,7 @@ mod timestamping {
     }
 
     fn get_all_timestamps_in_a_day_from_file(day: NaiveDate) -> Vec<Timestamp> {
-        let reader = files_io::read_file_into_buffer(&config::TIMESTAMPS_FILENAME);
+        let reader = files_io::read_file_into_buffer(&PathBuf::from(config::TIMESTAMPS_FILENAME));
 
         let mut timestamps_of_today: Vec<Timestamp> = Vec::new();
         for line in reader.lines() {
