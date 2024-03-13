@@ -1,35 +1,76 @@
 use core::panic;
 use std::env;
+use std::fs;
 use std::path::{Path, PathBuf};
+
 mod config;
+use crate::config::constants;
+use boss::timestamping;
 
 fn file_exists(path: &Path) -> bool {
     Path::new(path).exists()
 }
 
-fn check_project_files_exist() {
-    // Get the path to the current project directory
-    let project_dir = env::var("CARGO_MANIFEST_DIR").expect("Failed to get project directory");
+fn folder_exists(path: &Path) -> bool {
+    if let Ok(metadata) = fs::metadata(path) {
+        if metadata.is_dir() {
+            true
+        } else {
+            panic!(
+                "Path to the folder {:?} exists, but it is not a folder. Aborting!",
+                path
+            );
+        }
+    } else {
+        false
+    }
+}
 
-    let project_dir = PathBuf::from(project_dir);
-    // Create the full path by joining the executable directory with the relative path
-    let status_file_path = project_dir.join(config::STATUS_FILENAME);
-    let timestamps_file_path = project_dir.join(config::TIMESTAMPS_FILENAME);
+fn create_folder(path: &Path) {
+    fs::create_dir(path).expect("Could not create {:?} folder!");
+}
 
-    // Check if the status and timestamp files exist
-    if !file_exists(&status_file_path) {
-        panic!(
-            "I was looking for {:?}, but it does not exist!",
-            status_file_path
+fn create_file(file_path: &Path) {
+    // Create the file
+    fs::File::create(file_path).expect("Could not create file");
+}
+
+fn write_new_status_file(path: &Path) {
+    let line: String = constants::CLOSED_TIMESTAMP_KEYWORD.to_owned() + " TIMESTAMP";
+    std::fs::write(path, line).expect("could not write the new status file!");
+}
+
+fn if_first_time_set_up_app_files() {
+    // Get the path to the app directory, which is under home/user/.rodomopo
+    let home_dir = dirs::home_dir().expect("Failed to get user's home directory");
+    let app_dir = home_dir.join(".rodomopo/");
+
+    // Check if folder exists; create if not.
+    if !folder_exists(&app_dir) {
+        println!(
+            "The app folder does not exist. Creating one at {:?}",
+            app_dir
         );
+        create_folder(&app_dir)
+    }
+
+    let status_file_path = app_dir.join(constants::get_status_filepath());
+    let timestamps_file_path = app_dir.join(constants::get_timestamps_filepath());
+
+    // Check if the status and timestamp files exist; create if not.
+    if !file_exists(&status_file_path) {
+        println!("Status file not found. Creating it...");
+        create_file(&status_file_path);
+        write_new_status_file(&status_file_path)
     }
     if !file_exists(&timestamps_file_path) {
-        panic!("timestamps.dat file does not exist!");
+        println!("Status file not found. Creating it...");
+        create_file(&timestamps_file_path);
     }
 }
 
 fn main() {
-    check_project_files_exist();
+    if_first_time_set_up_app_files();
 
     boss::run()
 }

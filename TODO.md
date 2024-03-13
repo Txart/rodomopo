@@ -1,6 +1,7 @@
 ## Todos
 Bundle as standalone software
-  - timestamps.dat and config should be in a relative path somehow
+  - The info in config.rs should somehow be accesible to the user.
+Add subcommand to print and edit current config, maybe with Clap
 
 Improve error handling. No unwrap() or expects()!
 
@@ -8,7 +9,6 @@ Improve the looks of the output.
   - colors and bolds
 
 
-Add subcommand to print and edit current config, maybe with Clap
 
 ## Some day
 - plot weekly, monthly, yearly stats.
@@ -22,3 +22,4 @@ Files in current directory?
   - Progress bar
 Let user decide to go against the rules if duration is too short.
 Error: if there are no timestamps for a day, the code panics because it cannot subtract anything!!
+  - timestamps.dat and status.txt should be in a relative path somehow. Of course, timestamps.dat and status.txt cannot be part of the standalone binary, because they change! It should be written in the user's machine somewhere. But where?

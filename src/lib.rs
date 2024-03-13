@@ -1,7 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rustyline::error::ReadlineError;
 
-enum TimestampStatus {
+pub enum TimestampStatus {
     // If the timestamp is open, it is defined by the time when it was opened
     // If it is closed, no more info is needed.
     Open(NaiveDateTime),
@@ -48,11 +48,11 @@ mod files_io {
     }
 }
 
-mod timestamping {
+pub mod timestamping {
     use std::io::BufRead;
     use std::path::PathBuf;
 
-    use crate::config;
+    use crate::config::constants;
     use crate::files_io;
     use crate::Timestamp;
     use crate::TimestampStatus;
@@ -64,14 +64,14 @@ mod timestamping {
     }
 
     pub fn get_current_status() -> TimestampStatus {
-        let status_line: String =
-            files_io::read_first_line_from_file(&PathBuf::from(config::STATUS_FILENAME));
+        let status_filepath = constants::get_status_filepath();
+        let status_line: String = files_io::read_first_line_from_file(&status_filepath);
         let [status, datetime_string] = get_two_words_from_line(&status_line);
 
-        if status == config::OPEN_TIMESTAMP_KEYWORD {
+        if status == constants::OPEN_TIMESTAMP_KEYWORD {
             let datetime = datetime_from_string(datetime_string);
             TimestampStatus::Open(datetime)
-        } else if status == config::CLOSED_TIMESTAMP_KEYWORD {
+        } else if status == constants::CLOSED_TIMESTAMP_KEYWORD {
             TimestampStatus::Closed
         } else {
             panic!("Cannot read status from status.txt file. File corrupted.")
@@ -79,14 +79,12 @@ mod timestamping {
     }
 
     pub fn open_timestamp() {
-        let line_to_write: String = config::OPEN_TIMESTAMP_KEYWORD.to_owned()
+        let status_filepath = constants::get_status_filepath();
+        let line_to_write: String = constants::OPEN_TIMESTAMP_KEYWORD.to_owned()
             + " "
             + &datetime_to_string(get_current_datetime());
 
-        files_io::write_line_to_file(
-            line_to_write.as_str(),
-            &PathBuf::from(config::STATUS_FILENAME),
-        )
+        files_io::write_line_to_file(line_to_write.as_str(), &status_filepath)
     }
 
     pub fn minutes_since_last_datetime(datetime: NaiveDateTime) -> i64 {
@@ -98,19 +96,20 @@ mod timestamping {
 
     fn get_two_words_from_line(line: &str) -> [&str; 2] {
         let mut words = line.split(' ');
-        let first = words.next().unwrap();
-        let second = words.next().unwrap();
+        let first = words.next().expect("could not read first word!");
+        let second = words.next().expect("could not read second word!");
 
         [first, second]
     }
 
     fn datetime_from_string(s: &str) -> NaiveDateTime {
-        NaiveDateTime::parse_from_str(s, config::DATETIME_FORMAT)
+        NaiveDateTime::parse_from_str(s, constants::DATETIME_FORMAT)
             .expect("Error parsing datetime from string")
     }
 
     fn date_from_string(s: &str) -> NaiveDate {
-        NaiveDate::parse_from_str(s, config::DATE_FORMAT).expect("Error parsing date from string")
+        NaiveDate::parse_from_str(s, constants::DATE_FORMAT)
+            .expect("Error parsing date from string")
     }
 
     fn get_current_datetime() -> NaiveDateTime {
@@ -118,15 +117,16 @@ mod timestamping {
     }
 
     fn datetime_to_string(dt: NaiveDateTime) -> String {
-        dt.format(config::DATETIME_FORMAT).to_string()
+        dt.format(constants::DATETIME_FORMAT).to_string()
     }
     fn date_to_string(dt: NaiveDate) -> String {
-        dt.format(config::DATE_FORMAT).to_string()
+        dt.format(constants::DATE_FORMAT).to_string()
     }
 
-    fn set_timestamp_status_closed() {
-        let line: String = config::CLOSED_TIMESTAMP_KEYWORD.to_owned() + " TIMESTAMP";
-        files_io::write_line_to_file(&line, &PathBuf::from(config::STATUS_FILENAME));
+    pub fn set_timestamp_status_closed() {
+        let status_filepath = constants::get_status_filepath();
+        let line: String = constants::CLOSED_TIMESTAMP_KEYWORD.to_owned() + " TIMESTAMP";
+        files_io::write_line_to_file(&line, &status_filepath);
     }
 
     fn get_date_of_today() -> NaiveDate {
@@ -134,9 +134,10 @@ mod timestamping {
     }
 
     fn add_timestamp_to_history(timestamp_duration: i64) {
+        let timestamps_filepath = constants::get_timestamps_filepath();
         let date_of_today: String = date_to_string(get_date_of_today());
         let line_to_write: String = date_of_today + " " + &timestamp_duration.to_string();
-        files_io::append_line_to_file(&line_to_write, &PathBuf::from(config::TIMESTAMPS_FILENAME));
+        files_io::append_line_to_file(&line_to_write, &timestamps_filepath);
     }
 
     fn compute_working_hours_in_a_day(day: NaiveDate) -> i64 {
@@ -157,7 +158,8 @@ mod timestamping {
     }
 
     fn get_all_timestamps_in_a_day_from_file(day: NaiveDate) -> Vec<Timestamp> {
-        let reader = files_io::read_file_into_buffer(&PathBuf::from(config::TIMESTAMPS_FILENAME));
+        let timestamps_filepath = constants::get_timestamps_filepath();
+        let reader = files_io::read_file_into_buffer(&timestamps_filepath);
 
         let mut timestamps_of_today: Vec<Timestamp> = Vec::new();
         for line in reader.lines() {
@@ -201,7 +203,7 @@ mod timestamping {
     pub fn show_progress_for_today() {
         let today = get_date_of_today();
         let working_hours = compute_working_hours_in_a_day(today);
-        let goal = config::DAILY_WORK_GOAL_MINUTES;
+        let goal = constants::DAILY_WORK_GOAL_MINUTES;
 
         show_progress_bar(working_hours as f64, goal as f64, 20);
 
@@ -278,6 +280,7 @@ fn trigger_yes_no_question(question: &str) -> bool {
 }
 
 pub fn run() {
+    use config::constants;
     // let args = Cli::parse();
     let last_timestamp_status = crate::timestamping::get_current_status();
 
@@ -285,14 +288,14 @@ pub fn run() {
         TimestampStatus::Open(datetime) => {
             let dur = crate::timestamping::minutes_since_last_datetime(datetime);
 
-            if dur >= config::DAILY_WORK_GOAL_MINUTES {
+            if dur >= constants::DAILY_WORK_GOAL_MINUTES {
                 crate::timestamping::open_timestamp();
 
                 println!(
                     "You left a timestamp open {} minutes ago.\nI am assuming it is not valid: I will delete it and open a new timestamp.",
                     dur
                 );
-            } else if dur < config::MINIMUM_WORK_BLOCK_DURATION_MINUTES {
+            } else if dur < constants::MINIMUM_WORK_BLOCK_DURATION_MINUTES {
                 println!(
                     "Not enough time has passed. You have been working only for {dur} minutes"
                 );
