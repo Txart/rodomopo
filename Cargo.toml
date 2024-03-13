@@ -1,5 +1,5 @@
 [package]
-name = "boss"
+name = "rodomopo"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,5 +13,5 @@ lazy_static = "1.4.0"
 rustyline = "14.0.0"
 
 [[bin]]
-name = "boss"
+name = "rodomopo"
 path = "src/main.rs"

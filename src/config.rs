@@ -1,10 +1,11 @@
+#[allow(dead_code)] // Disables the unused warning
 pub mod constants {
     use dirs;
     use std::path::PathBuf;
 
     fn preppend_app_dir(filename: &str) -> PathBuf {
         let home_dir = dirs::home_dir().expect("Failed to get user's home directory");
-        let app_dir = home_dir.join(".boss/");
+        let app_dir = home_dir.join(".rodomopo/");
         app_dir.join(filename)
     }
 

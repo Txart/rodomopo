@@ -39,9 +39,9 @@ fn write_new_status_file(path: &Path) {
 }
 
 fn if_first_time_set_up_app_files() {
-    // Get the path to the app directory, which is under home/user/.boss
+    // Get the path to the app directory, which is under home/user/.rodomopo
     let home_dir = dirs::home_dir().expect("Failed to get user's home directory");
-    let app_dir = home_dir.join(".boss/");
+    let app_dir = home_dir.join(".rodomopo/");
 
     // Check if folder exists; create if not.
     if !folder_exists(&app_dir) {
@@ -70,5 +70,5 @@ fn if_first_time_set_up_app_files() {
 fn main() {
     if_first_time_set_up_app_files();
 
-    boss::run()
+    rodomopo::run()
 }

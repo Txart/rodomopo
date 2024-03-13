@@ -50,7 +50,6 @@ mod files_io {
 
 pub mod timestamping {
     use std::io::BufRead;
-    use std::path::PathBuf;
 
     use crate::config::constants;
     use crate::files_io;
