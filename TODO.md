@@ -1,5 +1,6 @@
 ## Todos
 Bundle as standalone software
+  - instructions to use it as a command in linux
   - The info in config.rs should somehow be accesible to the user.
 Add subcommand to print and edit current config, maybe with Clap
 
