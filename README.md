@@ -1,6 +1,7 @@
 # rodomopo
 
 Pomodoro timers can be distracting for focused work.
+
 Lower the power that **procrastination** has over you and stop the ruminating **doubts** of whether you worked enough with this **dead simple** inverse po-mo-do-ro timer.
 
 ## Why?
