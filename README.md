@@ -5,13 +5,14 @@ Pomodoro timers can be distracting for focused work.
 Lower the power that **procrastination** has over you and stop the ruminating **doubts** of whether you worked enough with this **dead simple** inverse po-mo-do-ro timer.
 
 ## Why?
-Having an external objective tracker of working hours works surprisingly well against two common issues knowledge workers have.
+This tool provides the same two main benefits that pomodoro timers do:
+
 1. By providing an objective measure of the total amount of work done, it produces the (true!) sensation that you are moving forwards in your project. After a bad day at work, I find that I can safely say to myself "at least I put in the hours" and be a little less frustrated and anxious of whether you should have stayed longer.
 2. By having a minimum target for each working session, I have noticed two main benefits:
 - If the target is small enough, it helps combat procrastination. This is the core insight behind the pomodoro philosophy. Before starting each working block, I know I *only* need to work for the following, say, 25 minutes.
 - It gently pushes you to do at least the minimum amount of work, which usually results in longer, more focused sessions.
 
-### This sounds a lot like a pomodoro timer. Why not pomodoro?
+### Why not pomodoro then?
 Pomodoro timers are good for many things!
 However, I hate it when I am in the flow and the timer goes off: it forces me to take a break when I could have been gliding through focused work.
 

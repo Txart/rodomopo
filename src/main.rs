@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 mod config;
-use crate::config::constants;
+use config::CONFIG;
 
 fn file_exists(path: &Path) -> bool {
     Path::new(path).exists()
@@ -34,7 +34,7 @@ fn create_file(file_path: &Path) {
 }
 
 fn write_new_status_file(path: &Path) {
-    let line: String = constants::CLOSED_TIMESTAMP_KEYWORD.to_owned() + " TIMESTAMP";
+    let line: String = CONFIG.closed_timestamp_keyword.to_owned() + " TIMESTAMP";
     std::fs::write(path, line).expect("could not write the new status file!");
 }
 
@@ -52,8 +52,8 @@ fn if_first_time_set_up_app_files() {
         create_folder(&app_dir)
     }
 
-    let status_file_path = app_dir.join(constants::get_status_filepath());
-    let timestamps_file_path = app_dir.join(constants::get_timestamps_filepath());
+    let status_file_path = app_dir.join(&CONFIG.status_filepath);
+    let timestamps_file_path = app_dir.join(&CONFIG.status_filepath);
 
     // Check if the status and timestamp files exist; create if not.
     if !file_exists(&status_file_path) {

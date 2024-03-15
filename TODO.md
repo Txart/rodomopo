@@ -1,7 +1,9 @@
 ## Todos
+
+Write a configuration file in .config/rodomopo/config.yaml with arguments for user.
+
 Bundle as standalone software
   - instructions to use it as a command in linux
-  - The info in config.rs should somehow be accesible to the user.
 Add subcommand to print and edit current config, maybe with Clap
 
 Improve error handling. No unwrap() or expects()!
@@ -9,7 +11,10 @@ Improve error handling. No unwrap() or expects()!
 Improve the looks of the output.
   - colors and bolds
 
+Let the user open the timestamps file to modify it by hand by one command line argument.
 
+Read The Book chapter about writing CLI app:
+  - write errors to stdout.
 
 ## Some day
 - plot weekly, monthly, yearly stats.

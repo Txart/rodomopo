@@ -1,29 +1,46 @@
-#[allow(dead_code)] // Disables the unused warning
-pub mod constants {
-    use dirs;
-    use std::path::PathBuf;
+use lazy_static::lazy_static;
+use std::path::PathBuf;
 
-    fn preppend_app_dir(filename: &str) -> PathBuf {
+pub struct Config {
+    pub status_filepath: PathBuf,     // current timestamp status
+    pub timestamps_filepath: PathBuf, // historical timestamps
+    pub config_filepath: PathBuf,     // config file for user
+    pub datetime_format: &'static str,
+    pub date_format: &'static str,
+    pub open_timestamp_keyword: &'static str,
+    pub closed_timestamp_keyword: &'static str,
+    pub minimum_work_block_duration_in_minutes: i64,
+    pub daily_work_goal_in_minutes: i64,
+}
+
+impl Config {
+    pub fn new() -> Self {
+        Self {
+            status_filepath: Self::prepend_app_dir("status.txt"),
+            timestamps_filepath: Self::prepend_app_dir("timestamps.dat"),
+            config_filepath: Self::prepend_config_dir("config.yaml"),
+            datetime_format: "%d/%m/%Y--%H:%M:%S",
+            date_format: "%d/%m/%Y",
+            open_timestamp_keyword: "OPEN",
+            closed_timestamp_keyword: "CLOSED",
+            minimum_work_block_duration_in_minutes: 25,
+            daily_work_goal_in_minutes: 180,
+        }
+    }
+    fn prepend_app_dir(filename: &str) -> PathBuf {
         let home_dir = dirs::home_dir().expect("Failed to get user's home directory");
         let app_dir = home_dir.join(".rodomopo/");
         app_dir.join(filename)
     }
 
-    const STATUS_FILENAME: &str = "status.txt"; // current timestamp status
-    const TIMESTAMPS_FILENAME: &str = "timestamps.dat"; // historical timestamps
-
-    pub fn get_status_filepath() -> PathBuf {
-        preppend_app_dir(STATUS_FILENAME)
+    fn prepend_config_dir(filename: &str) -> PathBuf {
+        let config_dir = dirs::config_dir().expect("Failed to get the config directory");
+        let full_config_dir = config_dir.join("rodomopo/");
+        config_dir.join(filename)
     }
+}
 
-    pub fn get_timestamps_filepath() -> PathBuf {
-        preppend_app_dir(TIMESTAMPS_FILENAME)
-    }
-
-    pub(crate) const DATETIME_FORMAT: &str = "%d/%m/%Y--%H:%M:%S";
-    pub(crate) const DATE_FORMAT: &str = "%d/%m/%Y";
-    pub(crate) const OPEN_TIMESTAMP_KEYWORD: &str = "OPEN";
-    pub(crate) const CLOSED_TIMESTAMP_KEYWORD: &str = "CLOSED";
-    pub(crate) const MINIMUM_WORK_BLOCK_DURATION_MINUTES: i64 = 25;
-    pub(crate) const DAILY_WORK_GOAL_MINUTES: i64 = 180;
+// Use CONFIG as a global variable instead of calling Config::new() everywhere.
+lazy_static! {
+    pub static ref CONFIG: Config = Config::new();
 }
