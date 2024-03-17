@@ -36,7 +36,7 @@ impl Config {
     fn prepend_config_dir(filename: &str) -> PathBuf {
         let config_dir = dirs::config_dir().expect("Failed to get the config directory");
         let full_config_dir = config_dir.join("rodomopo/");
-        config_dir.join(filename)
+        full_config_dir.join(filename)
     }
 }
 

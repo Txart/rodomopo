@@ -31,7 +31,7 @@ mod files_io {
 
         let mut line = String::new();
         if let Some(Ok(first_line)) = reader.lines().next() {
-            line.push_str(&first_line.trim_end());
+            line.push_str(first_line.trim_end());
         }
 
         line

@@ -2,6 +2,10 @@
 
 Write a configuration file in .config/rodomopo/config.yaml with arguments for user.
 
+Do not print "Creating application files at..." etc always!!
+
+main.rs: rename and refactor if_first_time_set_up_files()
+
 Bundle as standalone software
   - instructions to use it as a command in linux
 Add subcommand to print and edit current config, maybe with Clap
