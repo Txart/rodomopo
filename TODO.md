@@ -1,6 +1,5 @@
 ## Todos
 
-Write a configuration file in .config/rodomopo/config.yaml with arguments for user.
 
 Do not print "Creating application files at..." etc always!!
 
@@ -26,6 +25,7 @@ Read The Book chapter about writing CLI app:
 
 ## Done
 
+Write a configuration file in .config/rodomopo/config.yaml with arguments for user.
 Read config options (such as the global constants) from a config file.
 Show current work status. Sum and print all timestamps done today.
 Files in current directory?
