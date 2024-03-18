@@ -3,7 +3,9 @@ use std::fs;
 use std::path::Path;
 
 mod config;
-use config::CONFIG;
+mod file_io;
+mod run;
+mod timestamping;
 
 fn file_exists(path: &Path) -> bool {
     Path::new(path).exists()
@@ -30,6 +32,7 @@ fn create_folder(path: &Path) {
 
 fn create_folder_if_it_does_not_exist(path: &Path) {
     if !folder_exists(path) {
+        println!("Creating folder at {:?}", &path);
         create_folder(path)
     }
 }
@@ -41,6 +44,7 @@ fn create_file(file_path: &Path) {
 
 fn create_file_if_it_does_not_exist(file_path: &Path, file_contents: Option<String>) {
     if !file_exists(file_path) {
+        println!("Creating file: {:?}", &file_path);
         create_file(file_path);
 
         if let Some(content) = file_contents {
@@ -50,26 +54,25 @@ fn create_file_if_it_does_not_exist(file_path: &Path, file_contents: Option<Stri
 }
 
 fn if_first_time_set_up_app_files() {
-    let home_dir = dirs::home_dir().expect("Failed to get user's home directory");
-    let app_dir = home_dir.join(".rodomopo/");
-
+    let app_dir = dirs::home_dir()
+        .expect("Failed to get user's home directory")
+        .join(".rodomopo/");
     let config_dir = dirs::config_dir()
         .expect("Failed to get the config directory")
         .join("rodomopo/");
 
-    let status_file_path = app_dir.join(&CONFIG.status_filepath);
-    let timestamps_file_path = app_dir.join(&CONFIG.status_filepath);
-    let config_file_path = app_dir.join(&CONFIG.config_filepath);
+    let status_file_path = app_dir.join(&config::internal::CONFIG.status_filepath);
+    let timestamps_file_path = app_dir.join(&config::internal::CONFIG.timestamps_filepath);
+    let config_file_path = app_dir.join(&config::internal::CONFIG.config_filepath);
 
-    println!("Creating application files at {:?}", &app_dir);
     create_folder_if_it_does_not_exist(&app_dir);
     create_file_if_it_does_not_exist(&timestamps_file_path, None);
     let default_status_file_content: String =
-        CONFIG.closed_timestamp_keyword.to_owned() + " TIMESTAMP";
+        config::internal::CONFIG.closed_timestamp_keyword.to_owned() + " TIMESTAMP";
     create_file_if_it_does_not_exist(&status_file_path, Some(default_status_file_content));
 
-    println!("Creating config files at {:?}", &config_dir);
-    let default_config_file_content: String = String::from("lalalla: jajajja, \n tititi: 42");
+    let default_config_file_content: String =
+        config::user::UserConfig::serialize_default_user_config_contents();
     create_folder_if_it_does_not_exist(&config_dir);
     create_file_if_it_does_not_exist(&config_file_path, Some(default_config_file_content));
 }
@@ -77,5 +80,5 @@ fn if_first_time_set_up_app_files() {
 fn main() {
     if_first_time_set_up_app_files();
 
-    rodomopo::run()
+    run::run()
 }

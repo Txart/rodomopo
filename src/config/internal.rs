@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use std::path::PathBuf;
 
-pub struct Config {
+pub struct InternalConfig {
     pub status_filepath: PathBuf,     // current timestamp status
     pub timestamps_filepath: PathBuf, // historical timestamps
     pub config_filepath: PathBuf,     // config file for user
@@ -9,11 +9,9 @@ pub struct Config {
     pub date_format: &'static str,
     pub open_timestamp_keyword: &'static str,
     pub closed_timestamp_keyword: &'static str,
-    pub minimum_work_block_duration_in_minutes: i64,
-    pub daily_work_goal_in_minutes: i64,
 }
 
-impl Config {
+impl InternalConfig {
     pub fn new() -> Self {
         Self {
             status_filepath: Self::prepend_app_dir("status.txt"),
@@ -23,8 +21,6 @@ impl Config {
             date_format: "%d/%m/%Y",
             open_timestamp_keyword: "OPEN",
             closed_timestamp_keyword: "CLOSED",
-            minimum_work_block_duration_in_minutes: 25,
-            daily_work_goal_in_minutes: 180,
         }
     }
     fn prepend_app_dir(filename: &str) -> PathBuf {
@@ -42,5 +38,5 @@ impl Config {
 
 // Use CONFIG as a global variable instead of calling Config::new() everywhere.
 lazy_static! {
-    pub static ref CONFIG: Config = Config::new();
+    pub static ref CONFIG: InternalConfig = InternalConfig::new();
 }
