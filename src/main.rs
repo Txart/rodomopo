@@ -1,6 +1,7 @@
 use core::panic;
 use std::fs;
 use std::path::Path;
+use std::process;
 
 mod config;
 mod file_io;
@@ -53,7 +54,7 @@ fn create_file_if_it_does_not_exist(file_path: &Path, file_contents: Option<Stri
     }
 }
 
-fn if_first_time_set_up_app_files() {
+fn check_and_set_up_app_files() {
     let app_dir = dirs::home_dir()
         .expect("Failed to get user's home directory")
         .join(".rodomopo/");
@@ -78,7 +79,10 @@ fn if_first_time_set_up_app_files() {
 }
 
 fn main() {
-    if_first_time_set_up_app_files();
+    check_and_set_up_app_files();
 
-    run::run()
+    run::run().unwrap_or_else(|err| {
+        println!("Problem running the program: {err}");
+        process::exit(1);
+    })
 }

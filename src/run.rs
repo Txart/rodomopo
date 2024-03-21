@@ -1,5 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use rustyline::error::ReadlineError;
+use std::io;
 
 use crate::config;
 
@@ -43,10 +44,10 @@ fn trigger_yes_no_question(question: &str) -> bool {
     }
 }
 
-pub fn run() {
+pub fn run() -> Result<(), io::Error> {
     let user_config = config::user::UserConfig::new();
     // let args = Cli::parse();
-    let last_timestamp_status = crate::timestamping::get_current_status();
+    let last_timestamp_status = crate::timestamping::get_current_status()?;
 
     match last_timestamp_status {
         TimestampStatus::Open(datetime) => {
@@ -87,5 +88,7 @@ pub fn run() {
     }
 
     println!("\n");
-    crate::timestamping::show_progress_for_today(&user_config);
+    let _ = crate::timestamping::show_progress_for_today(&user_config);
+
+    Ok(())
 }

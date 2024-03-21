@@ -1,4 +1,5 @@
 use chrono::{Local, NaiveDate, NaiveDateTime};
+use std::io;
 use std::io::BufRead;
 
 use crate::config::internal::CONFIG;
@@ -12,17 +13,17 @@ pub fn close_timestamp(timestamp_duration: i64) {
     add_timestamp_to_history(timestamp_duration);
 }
 
-pub fn get_current_status() -> TimestampStatus {
-    let status_line: String = file_io::read_first_line_from_file(&CONFIG.status_filepath);
-    let [status, datetime_string] = get_two_words_from_line(&status_line);
+pub fn get_current_status() -> Result<TimestampStatus, io::Error> {
+    let status_line: String = file_io::read_first_line_from_file(&CONFIG.status_filepath)?;
+    let [status, datetime_string] = get_two_words_from_line(&status_line)?;
 
     if status == CONFIG.open_timestamp_keyword {
         let datetime = datetime_from_string(datetime_string, CONFIG.datetime_format);
-        TimestampStatus::Open(datetime)
+        Ok(TimestampStatus::Open(datetime))
     } else if status == CONFIG.closed_timestamp_keyword {
-        TimestampStatus::Closed
+        Ok(TimestampStatus::Closed)
     } else {
-        panic!("Cannot read status from status.txt file. File corrupted.")
+        Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid status"))
     }
 }
 
@@ -41,12 +42,18 @@ pub fn minutes_since_last_datetime(datetime: NaiveDateTime) -> i64 {
         .num_minutes()
 }
 
-fn get_two_words_from_line(line: &str) -> [&str; 2] {
+fn get_two_words_from_line(line: &str) -> Result<[&str; 2], io::Error> {
     let mut words = line.split(' ');
-    let first = words.next().expect("could not read first word!");
-    let second = words.next().expect("could not read second word!");
+    let first = words.next().ok_or(io::Error::new(
+        io::ErrorKind::InvalidData,
+        "Could not read first word",
+    ))?;
+    let second = words.next().ok_or(io::Error::new(
+        io::ErrorKind::InvalidData,
+        "Could not read second word",
+    ))?;
 
-    [first, second]
+    Ok([first, second])
 }
 
 fn datetime_from_string(s: &str, fmt: &str) -> NaiveDateTime {
@@ -83,34 +90,34 @@ fn add_timestamp_to_history(timestamp_duration: i64) {
     file_io::append_line_to_file(&line_to_write, &CONFIG.timestamps_filepath);
 }
 
-fn compute_working_hours_in_a_day(day: NaiveDate) -> i64 {
-    let timestamps: Vec<Timestamp> = get_all_timestamps_in_a_day_from_file(day);
-    sum_minutes_in_timestamps(timestamps)
+fn compute_working_hours_in_a_day(day: NaiveDate) -> Result<i64, io::Error> {
+    let timestamps: Vec<Timestamp> = get_all_timestamps_in_a_day_from_file(day)?;
+    Ok(sum_minutes_in_timestamps(timestamps))
 }
 
-fn get_timestamp_from_line(line: String) -> Timestamp {
+fn get_timestamp_from_line(line: String) -> Result<Timestamp, io::Error> {
     let binding = line.to_string();
-    let [date, duration] = get_two_words_from_line(&binding);
+    let [date, duration] = get_two_words_from_line(&binding)?;
 
-    Timestamp {
+    Ok(Timestamp {
         date: date_from_string(date),
         duration: duration
             .parse::<i64>()
             .expect("could not parse number from string"),
-    }
+    })
 }
 
-fn get_all_timestamps_in_a_day_from_file(day: NaiveDate) -> Vec<Timestamp> {
-    let reader = file_io::read_file_into_buffer(&CONFIG.timestamps_filepath);
+fn get_all_timestamps_in_a_day_from_file(day: NaiveDate) -> Result<Vec<Timestamp>, std::io::Error> {
+    let reader = file_io::read_file_into_buffer(&CONFIG.timestamps_filepath)?;
 
     let mut timestamps_of_today: Vec<Timestamp> = Vec::new();
     for line in reader.lines() {
-        let line_ts = get_timestamp_from_line(line.expect("could not parse line!"));
+        let line_ts = get_timestamp_from_line(line.expect("could not parse line!"))?;
         if day == line_ts.date {
             timestamps_of_today.push(line_ts);
         }
     }
-    timestamps_of_today
+    Ok(timestamps_of_today)
 }
 
 fn sum_minutes_in_timestamps(timestamps: Vec<Timestamp>) -> i64 {
@@ -142,14 +149,15 @@ fn show_progress_bar(progress: f64, goal: f64, bar_char_length: usize) {
     println!("{}", progress_bar);
 }
 
-pub fn show_progress_for_today(user_config: &UserConfig) {
+pub fn show_progress_for_today(user_config: &UserConfig) -> Result<(), io::Error> {
     let today = get_date_of_today();
-    let working_hours = compute_working_hours_in_a_day(today);
+    let working_hours = compute_working_hours_in_a_day(today)?;
     let goal = user_config.daily_work_goal_in_minutes;
 
     show_progress_bar(working_hours as f64, goal as f64, 20);
 
     println!("{} minutes out of {} worked today.\n", working_hours, goal);
+    Ok(())
 }
 
 #[cfg(test)]
@@ -158,11 +166,13 @@ mod tests {
     use chrono::NaiveTime;
 
     #[test]
-    fn it_gets_two_words() {
+    fn it_gets_two_words() -> Result<(), io::Error> {
         let line = "two words";
-        let [first, second] = get_two_words_from_line(line);
+        let [first, second] = get_two_words_from_line(line)?;
         assert_eq!(first, "two");
         assert_eq!(second, "words");
+
+        Ok(())
     }
 
     #[test]
@@ -183,20 +193,22 @@ mod tests {
     }
 
     #[test]
-    fn gets_timestamp_from_line() {
+    fn gets_timestamp_from_line() -> Result<(), io::Error> {
         let line: String = String::from("21/02/2024 67");
-        let ts = get_timestamp_from_line(line);
+        let ts = get_timestamp_from_line(line)?;
 
         let date: NaiveDate = date_from_string("21/02/2024");
 
         assert_eq!(date, ts.date);
         assert_eq!(67, ts.duration);
+
+        Ok(())
     }
 
     #[test]
-    fn gets_status_from_line() {
+    fn gets_status_from_line() -> Result<(), io::Error> {
         let line: String = String::from("OPEN 14/03/2024--10:28:01");
-        let [_status, datetime_string] = get_two_words_from_line(&line);
+        let [_status, datetime_string] = get_two_words_from_line(&line)?;
         let datetime: NaiveDateTime = datetime_from_string(datetime_string, CONFIG.datetime_format);
 
         let dt = NaiveDateTime::new(
@@ -205,6 +217,8 @@ mod tests {
         );
 
         assert_eq!(datetime, dt);
+
+        Ok(())
     }
 
     #[test]
